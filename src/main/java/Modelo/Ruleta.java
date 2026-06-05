@@ -1,16 +1,15 @@
 package Modelo;
 
+import Modelo.Apuestas.ApuestaBase;
+import Modelo.Persistencia.IRepositorioResultados;
+import Modelo.Persistencia.RepositorioEnMemoria;
+
+import java.util.List;
 import java.util.Random;
 
 public class Ruleta {
 
-    public static final int MAX_HISTORIAL = 100;
     public static final int MAX_NUMERO = 36;
-
-    private final int[] historialNumeros = new int[MAX_HISTORIAL];
-    private final int[] historialApuestas = new int[MAX_HISTORIAL];
-    private final boolean[] historialAciertos = new boolean[MAX_HISTORIAL];
-    private int historialSize = 0;
 
     private final Random rng = new Random();
     private final int[] numerosRojos = {
@@ -18,30 +17,43 @@ public class Ruleta {
     };
 
     private int saldo;
+    private final IRepositorioResultados repositorioResultados;
 
     public Ruleta() {
-        this.saldo = 0;
+        this(0, new RepositorioEnMemoria());
     }
 
     public Ruleta(int saldoInicial) {
+        this(saldoInicial, new RepositorioEnMemoria());
+    }
+
+    public Ruleta(int saldoInicial, IRepositorioResultados repositorioResultados) {
         this.saldo = saldoInicial;
+        this.repositorioResultados = repositorioResultados;
+    }
+
+    public Resultado jugar(ApuestaBase apuesta) {
+        int numero = generarNumero();
+        String color = colorDe(numero);
+        boolean acierto = apuesta.acierta(numero, color);
+
+        actualizarSaldo(apuesta.getMonto(), acierto);
+
+        Resultado resultado = new Resultado(numero, apuesta.getEtiqueta(), apuesta.getMonto(), acierto, color);
+        repositorioResultados.guardar(resultado);
+
+        return resultado;
     }
 
     public int generarNumero() {
         return rng.nextInt(MAX_NUMERO + 1);
     }
 
-    public boolean evaluarResultado(int numero, TipoApuesta tipo) {
+    public String colorDe(int numero) {
         if (numero == 0) {
-            return false;
+            return "VERDE";
         }
-
-        return switch (tipo) {
-            case ROJO -> esRojo(numero);
-            case NEGRO -> !esRojo(numero);
-            case PAR -> numero % 2 == 0;
-            case IMPAR -> numero % 2 != 0;
-        };
+        return esRojo(numero) ? "ROJO" : "NEGRO";
     }
 
     public boolean esRojo(int n) {
@@ -53,21 +65,20 @@ public class Ruleta {
         return false;
     }
 
-    public void registrarResultado(int numero, int apuesta, boolean acierto) {
-        if (historialSize >= MAX_HISTORIAL) {
-            return;
-        }
-
-        historialNumeros[historialSize] = numero;
-        historialApuestas[historialSize] = apuesta;
-        historialAciertos[historialSize] = acierto;
-        historialSize++;
-
+    private void actualizarSaldo(int monto, boolean acierto) {
         if (acierto) {
-            saldo += apuesta;
+            saldo += monto;
         } else {
-            saldo -= apuesta;
+            saldo -= monto;
         }
+    }
+
+    public List<Resultado> obtenerHistorial() {
+        return repositorioResultados.obtenerTodos();
+    }
+
+    public IRepositorioResultados getRepositorioResultados() {
+        return repositorioResultados;
     }
 
     public int getSaldo() {
@@ -82,7 +93,9 @@ public class Ruleta {
     }
 
     public String obtenerEstadisticas() {
-        if (historialSize == 0) {
+        List<Resultado> historial = repositorioResultados.obtenerTodos();
+
+        if (historial.isEmpty()) {
             return "No hay rondas jugadas.";
         }
 
@@ -90,19 +103,20 @@ public class Ruleta {
         int totalAciertos = 0;
         int gananciaNeta = 0;
 
-        for (int i = 0; i < historialSize; i++) {
-            totalApostado += historialApuestas[i];
-            if (historialAciertos[i]) {
+        for (Resultado resultado : historial) {
+            totalApostado += resultado.getMonto();
+
+            if (resultado.isAcierto()) {
                 totalAciertos++;
-                gananciaNeta += historialApuestas[i];
+                gananciaNeta += resultado.getMonto();
             } else {
-                gananciaNeta -= historialApuestas[i];
+                gananciaNeta -= resultado.getMonto();
             }
         }
 
-        double porcentaje = (double) totalAciertos * 100 / historialSize;
+        double porcentaje = (double) totalAciertos * 100 / historial.size();
 
-        return "Rondas: " + historialSize
+        return "Rondas: " + historial.size()
                 + "\nTotal apostado: $" + totalApostado
                 + "\nAciertos: " + totalAciertos
                 + "\n% acierto: " + String.format("%.1f", porcentaje) + "%"

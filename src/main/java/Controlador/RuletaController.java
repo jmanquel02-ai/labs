@@ -1,28 +1,38 @@
 package Controlador;
 
+import Modelo.Apuestas.ApuestaBase;
+import Modelo.Persistencia.IRepositorioResultados;
 import Modelo.Resultado;
 import Modelo.Ruleta;
-import Modelo.TipoApuesta;
+
+import java.util.List;
 
 public class RuletaController {
 
     private final Ruleta ruleta;
+    private final SessionController sessionController;
+    private final IRepositorioResultados repositorioResultados;
 
-    public RuletaController(Ruleta ruleta) {
+    public RuletaController(Ruleta ruleta, SessionController sessionController) {
         this.ruleta = ruleta;
+        this.sessionController = sessionController;
+        this.repositorioResultados = ruleta.getRepositorioResultados();
     }
 
-    public Resultado jugar(TipoApuesta tipoApuesta, int monto) {
-        if (monto <= 0) {
-            throw new IllegalArgumentException("El monto debe ser mayor que 0");
-        }
+    public Resultado jugar(ApuestaBase apuesta) {
+        Resultado resultado = ruleta.jugar(apuesta);
 
-        int numero = ruleta.generarNumero();
-        boolean acierto = ruleta.evaluarResultado(numero, tipoApuesta);
+        sessionController.getUsuarioActual().agregarResultado(resultado);
 
-        ruleta.registrarResultado(numero, monto, acierto);
+        return resultado;
+    }
 
-        return new Resultado(numero, tipoApuesta, monto, acierto);
+    public List<Resultado> obtenerHistorial() {
+        return repositorioResultados.obtenerTodos();
+    }
+
+    public IRepositorioResultados getRepositorioResultados() {
+        return repositorioResultados;
     }
 
     public int getSaldo() {

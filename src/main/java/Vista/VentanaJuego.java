@@ -2,8 +2,9 @@ package Vista;
 
 import Controlador.RuletaController;
 import Controlador.SessionController;
+import Modelo.Apuestas.ApuestaBase;
+import Modelo.Apuestas.ApuestaFactory;
 import Modelo.Resultado;
-import Modelo.TipoApuesta;
 
 import javax.swing.*;
 import java.awt.*;
@@ -13,7 +14,7 @@ public class VentanaJuego extends JFrame {
     private final SessionController sessionController;
     private final RuletaController ruletaController;
 
-    private JComboBox<TipoApuesta> cboTipo;
+    private JComboBox<String> cboTipo;
     private JTextField txtMonto;
     private JLabel lblSaldo;
     private JButton btnJugar;
@@ -33,7 +34,7 @@ public class VentanaJuego extends JFrame {
         setLayout(new GridLayout(5, 2, 10, 10));
 
         add(new JLabel("Tipo de apuesta:"));
-        cboTipo = new JComboBox<>(TipoApuesta.values());
+        cboTipo = new JComboBox<>(new String[]{"ROJO", "NEGRO", "PAR", "IMPAR"});
         add(cboTipo);
 
         add(new JLabel("Monto:"));
@@ -55,15 +56,19 @@ public class VentanaJuego extends JFrame {
 
     private void jugar() {
         try {
-            TipoApuesta tipo = (TipoApuesta) cboTipo.getSelectedItem();
+            String tipo = (String) cboTipo.getSelectedItem();
             int monto = Integer.parseInt(txtMonto.getText());
 
-            Resultado resultado = ruletaController.jugar(tipo, monto);
+            ApuestaBase apuesta = ApuestaFactory.crear(tipo, monto);
+            Resultado resultado = ruletaController.jugar(apuesta);
 
             String mensaje = resultado.isAcierto() ? "Ganaste" : "Perdiste";
 
             JOptionPane.showMessageDialog(this,
-                    mensaje + "\nNúmero salido: " + resultado.getNumero());
+                    mensaje
+                            + "\nNúmero salido: " + resultado.getNumero()
+                            + "\nColor: " + resultado.getColor()
+                            + "\nApuesta: " + resultado.getTipoApuesta());
 
             refrescarSaldo();
 
@@ -77,7 +82,7 @@ public class VentanaJuego extends JFrame {
     }
 
     private void volverMenu() {
-        new VentanaMenu(sessionController).setVisible(true);
+        new VentanaMenu(sessionController, ruletaController).setVisible(true);
         dispose();
     }
 }

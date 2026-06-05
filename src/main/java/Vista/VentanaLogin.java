@@ -1,6 +1,11 @@
 package Vista;
 
 import Controlador.SessionController;
+import Controlador.RuletaController;
+import Modelo.Persistencia.IRepositorioResultados;
+import Modelo.Persistencia.RepositorioArchivo;
+import Modelo.Persistencia.RepositorioEnMemoria;
+import Modelo.Ruleta;
 
 import javax.swing.*;
 import java.awt.*;
@@ -52,7 +57,15 @@ public class VentanaLogin extends JFrame {
 
         if (ok) {
             JOptionPane.showMessageDialog(this, "Bienvenido " + sessionController.getNombreUsuario());
-            new VentanaMenu(sessionController).setVisible(true);
+
+            // Repositorio persistente en archivo. Para probar memoria, cambia la línea por:
+            // IRepositorioResultados repositorio = new RepositorioEnMemoria();
+            IRepositorioResultados repositorio = new RepositorioArchivo("historial_ruleta.csv");
+
+            Ruleta ruleta = new Ruleta(1000, repositorio);
+            RuletaController ruletaController = new RuletaController(ruleta, sessionController);
+
+            new VentanaMenu(sessionController, ruletaController).setVisible(true);
             dispose();
         } else {
             JOptionPane.showMessageDialog(this, "Credenciales incorrectas");

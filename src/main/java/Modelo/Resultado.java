@@ -2,23 +2,25 @@ package Modelo;
 
 public class Resultado {
 
-    private int numero;
-    private TipoApuesta tipoApuesta;
-    private int monto;
-    private boolean acierto;
+    private final int numero;
+    private final String tipoApuesta;
+    private final int monto;
+    private final boolean acierto;
+    private final String color;
 
-    public Resultado(int numero, TipoApuesta tipoApuesta, int monto, boolean acierto) {
+    public Resultado(int numero, String tipoApuesta, int monto, boolean acierto, String color) {
         this.numero = numero;
         this.tipoApuesta = tipoApuesta;
         this.monto = monto;
         this.acierto = acierto;
+        this.color = color;
     }
 
     public int getNumero() {
         return numero;
     }
 
-    public TipoApuesta getTipoApuesta() {
+    public String getTipoApuesta() {
         return tipoApuesta;
     }
 
@@ -28,5 +30,9 @@ public class Resultado {
 
     public boolean isAcierto() {
         return acierto;
+    }
+
+    public String getColor() {
+        return color;
     }
 }

@@ -2,7 +2,6 @@ package Vista;
 
 import Controlador.SessionController;
 import Controlador.RuletaController;
-import Modelo.Ruleta;
 
 import javax.swing.*;
 import java.awt.*;
@@ -17,35 +16,43 @@ public class VentanaMenu extends JFrame {
     private JButton btnJugar;
     private JButton btnPerfil;
     private JButton btnCerrarSesion;
+    private JButton btnHistorial;
+    private JButton btnEstadisticas;
 
-    public VentanaMenu(SessionController sessionController) {
+    public VentanaMenu(SessionController sessionController, RuletaController ruletaController) {
         this.sessionController = sessionController;
-        this.ruletaController = new RuletaController(new Ruleta(1000));
+        this.ruletaController = ruletaController;
         inicializar();
     }
 
     private void inicializar() {
         setTitle("Menú Principal");
-        setSize(400, 250);
+        setSize(400, 300);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
-        setLayout(new GridLayout(5, 1, 10, 10));
+        setLayout(new GridLayout(7, 1, 10, 10));
 
         lblBienvenida = new JLabel("Bienvenido: " + sessionController.getNombreUsuario(), SwingConstants.CENTER);
         lblSaldo = new JLabel("Saldo: $" + ruletaController.getSaldo(), SwingConstants.CENTER);
 
         btnJugar = new JButton("Jugar");
         btnPerfil = new JButton("Perfil");
+        btnHistorial = new JButton("Historial");
+        btnEstadisticas = new JButton("Estadísticas");
         btnCerrarSesion = new JButton("Cerrar sesión");
 
         add(lblBienvenida);
         add(lblSaldo);
         add(btnJugar);
         add(btnPerfil);
+        add(btnHistorial);
+        add(btnEstadisticas);
         add(btnCerrarSesion);
 
         btnJugar.addActionListener(e -> abrirJuego());
         btnPerfil.addActionListener(e -> mostrarPerfil());
+        btnHistorial.addActionListener(e -> abrirHistorial());
+        btnEstadisticas.addActionListener(e -> abrirEstadisticas());
         btnCerrarSesion.addActionListener(e -> cerrarSesion());
     }
 
@@ -59,6 +66,15 @@ public class VentanaMenu extends JFrame {
                 "Nombre: " + sessionController.getUsuarioActual().getNombre() +
                         "\nUsuario: " + sessionController.getUsuarioActual().getUsername() +
                         "\nSaldo: $" + ruletaController.getSaldo());
+    }
+
+    private void abrirHistorial() {
+        new VentanaHistorial(sessionController, ruletaController).setVisible(true);
+        dispose();
+    }
+
+    private void abrirEstadisticas() {
+        new VentanaEstadisticas(ruletaController).setVisible(true);
     }
 
     private void cerrarSesion() {
