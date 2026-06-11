@@ -28,11 +28,27 @@ public class Ruleta {
     }
 
     public Ruleta(int saldoInicial, IRepositorioResultados repositorioResultados) {
+        if (saldoInicial < 0) {
+            throw new IllegalArgumentException("Saldo inicial inválido");
+        }
+
+        if (repositorioResultados == null) {
+            throw new IllegalArgumentException("Repositorio requerido");
+        }
+
         this.saldo = saldoInicial;
         this.repositorioResultados = repositorioResultados;
     }
 
     public Resultado jugar(ApuestaBase apuesta) {
+        if (apuesta == null) {
+            throw new IllegalArgumentException("Apuesta requerida");
+        }
+
+        if (apuesta.getMonto() > saldo) {
+            throw new IllegalArgumentException("Saldo insuficiente");
+        }
+
         int numero = generarNumero();
         String color = colorDe(numero);
         boolean acierto = apuesta.acierta(numero, color);

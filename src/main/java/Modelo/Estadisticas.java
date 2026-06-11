@@ -11,6 +11,9 @@ public class Estadisticas {
     private final IRepositorioResultados repositorioResultados;
 
     public Estadisticas(IRepositorioResultados repositorioResultados) {
+        if (repositorioResultados == null) {
+            throw new IllegalArgumentException("Repositorio requerido");
+        }
         this.repositorioResultados = repositorioResultados;
     }
 
@@ -71,6 +74,11 @@ public class Estadisticas {
 
         for (Resultado resultado : historial) {
             String tipo = resultado.getTipoApuesta();
+
+            if (tipo == null || tipo.isBlank()) {
+                continue;
+            }
+
             contador.put(tipo, contador.getOrDefault(tipo, 0) + 1);
         }
 

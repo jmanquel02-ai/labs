@@ -18,6 +18,12 @@ public class Usuario {
     }
 
     public Usuario(String username, String password, String nombre) {
+        if (username == null || username.isBlank() ||
+                password == null || password.isBlank() ||
+                nombre == null || nombre.isBlank()) {
+            throw new IllegalArgumentException("Datos requeridos");
+        }
+
         this.username = username;
         this.password = password;
         this.nombre = nombre;
@@ -25,6 +31,9 @@ public class Usuario {
     }
 
     public boolean validarCredenciales(String u, String p) {
+        if (u == null || p == null) {
+            return false;
+        }
         return this.username.equals(u) && this.password.equals(p);
     }
 
