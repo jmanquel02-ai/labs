@@ -42,6 +42,11 @@ public class VentanaHistorial extends JFrame {
     }
 
     private void cargarHistorial() {
+        if (!sessionController.hayUsuario()) {
+            txtHistorial.setText("No hay una sesión activa. Vuelva a iniciar sesión.");
+            return;
+        }
+
         List<Resultado> historial = ruletaController.obtenerHistorial();
 
         if (historial.isEmpty()) {

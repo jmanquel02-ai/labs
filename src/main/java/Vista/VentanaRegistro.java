@@ -50,18 +50,38 @@ public class VentanaRegistro extends JFrame {
     }
 
     private void registrar() {
+        String nombre = txtNombre.getText().trim();
+        String usuario = txtUsuario.getText().trim();
+        String clave = new String(txtClave.getPassword());
+
+        if (nombre.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar un nombre");
+            return;
+        }
+
+        if (usuario.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar un usuario");
+            return;
+        }
+
+        if (clave.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar una clave");
+            return;
+        }
+
+        if (clave.length() < 4) {
+            JOptionPane.showMessageDialog(this, "La clave debe tener al menos 4 caracteres");
+            return;
+        }
+
         try {
-            sessionController.registrarUsuario(
-                    txtUsuario.getText(),
-                    new String(txtClave.getPassword()),
-                    txtNombre.getText()
-            );
+            sessionController.registrarUsuario(usuario, clave, nombre);
 
             JOptionPane.showMessageDialog(this, "Usuario registrado correctamente");
             new VentanaLogin(sessionController).setVisible(true);
             dispose();
 
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalStateException e) {
             JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }

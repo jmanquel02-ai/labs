@@ -4,7 +4,6 @@ import Controlador.SessionController;
 import Controlador.RuletaController;
 import Modelo.Persistencia.IRepositorioResultados;
 import Modelo.Persistencia.RepositorioArchivo;
-import Modelo.Persistencia.RepositorioEnMemoria;
 import Modelo.Ruleta;
 
 import javax.swing.*;
@@ -50,25 +49,34 @@ public class VentanaLogin extends JFrame {
     }
 
     private void intentarLogin() {
-        String usuario = txtUsuario.getText();
+        String usuario = txtUsuario.getText().trim();
         String clave = new String(txtClave.getPassword());
 
-        boolean ok = sessionController.iniciarSesion(usuario, clave);
+        if (usuario.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar un usuario");
+            return;
+        }
 
-        if (ok) {
-            JOptionPane.showMessageDialog(this, "Bienvenido " + sessionController.getNombreUsuario());
+        if (clave.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar una clave");
+            return;
+        }
 
-            // Repositorio persistente en archivo. Para probar memoria, cambia la línea por:
-            // IRepositorioResultados repositorio = new RepositorioEnMemoria();
-            IRepositorioResultados repositorio = new RepositorioArchivo("historial_ruleta.csv");
+        try {
+            boolean ok = sessionController.iniciarSesion(usuario, clave);
 
-            Ruleta ruleta = new Ruleta(1000, repositorio);
-            RuletaController ruletaController = new RuletaController(ruleta, sessionController);
+            if (ok) {
+                JOptionPane.showMessageDialog(this, "Bienvenido " + sessionController.getNombreUsuario());
 
-            new VentanaMenu(sessionController, ruletaController).setVisible(true);
-            dispose();
-        } else {
-            JOptionPane.showMessageDialog(this, "Credenciales incorrectas");
+                IRepositorioResultados repositorio = new RepositorioArchivo("historial_ruleta.csv");
+                Ruleta ruleta = new Ruleta(1000, repositorio);
+                RuletaController ruletaController = new RuletaController(ruleta, sessionController);
+
+                new VentanaMenu(sessionController, ruletaController).setVisible(true);
+                dispose();
+            }
+        } catch (IllegalStateException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 

@@ -19,11 +19,42 @@ public class RepositorioArchivo implements IRepositorioResultados {
     }
 
     public RepositorioArchivo(String nombreArchivo) {
+        if (nombreArchivo == null || nombreArchivo.isBlank()) {
+            throw new IllegalArgumentException("Ruta de historial requerida");
+        }
+
         this.rutaArchivo = Path.of(nombreArchivo);
+        validarRutaInicial();
+    }
+
+    private void validarRutaInicial() {
+        Path rutaPadre = rutaArchivo.toAbsolutePath().getParent();
+
+        if (rutaPadre != null && Files.exists(rutaPadre) && !Files.isWritable(rutaPadre)) {
+            throw new IllegalStateException("No hay permisos de escritura en la carpeta del historial");
+        }
+
+        if (Files.exists(rutaArchivo)) {
+            if (!Files.isRegularFile(rutaArchivo)) {
+                throw new IllegalStateException("La ruta del historial no corresponde a un archivo");
+            }
+
+            if (!Files.isReadable(rutaArchivo)) {
+                throw new IllegalStateException("No hay permisos de lectura sobre el historial");
+            }
+
+            if (!Files.isWritable(rutaArchivo)) {
+                throw new IllegalStateException("No hay permisos de escritura sobre el historial");
+            }
+        }
     }
 
     @Override
     public void guardar(Resultado resultado) {
+        if (resultado == null) {
+            throw new IllegalArgumentException("Resultado requerido");
+        }
+
         try {
             boolean archivoNuevo = !Files.exists(rutaArchivo) || Files.size(rutaArchivo) == 0;
 
@@ -45,7 +76,7 @@ public class RepositorioArchivo implements IRepositorioResultados {
                 writer.newLine();
             }
         } catch (IOException e) {
-            System.out.println("No se pudo guardar el resultado en archivo: " + e.getMessage());
+            throw new IllegalStateException("No se pudo guardar el resultado en archivo", e);
         }
     }
 
@@ -73,16 +104,33 @@ public class RepositorioArchivo implements IRepositorioResultados {
                     continue;
                 }
 
-                int numero = Integer.parseInt(partes[0]);
-                String color = partes[1];
-                String tipoApuesta = partes[2];
-                int monto = Integer.parseInt(partes[3]);
-                boolean acierto = Boolean.parseBoolean(partes[4]);
+                String textoNumero = partes[0].trim();
+                String color = partes[1].trim();
+                String tipoApuesta = partes[2].trim();
+                String textoMonto = partes[3].trim();
+                String textoAcierto = partes[4].trim();
 
-                resultados.add(new Resultado(numero, tipoApuesta, monto, acierto, color));
+                if (textoNumero.isBlank() || color.isBlank() || tipoApuesta.isBlank()
+                        || textoMonto.isBlank() || textoAcierto.isBlank()) {
+                    continue;
+                }
+
+                try {
+                    int numero = Integer.parseInt(textoNumero);
+                    int monto = Integer.parseInt(textoMonto);
+                    boolean acierto = Boolean.parseBoolean(textoAcierto);
+
+                    if (numero < 0 || numero > 36 || monto <= 0) {
+                        continue;
+                    }
+
+                    resultados.add(new Resultado(numero, tipoApuesta, monto, acierto, color));
+                } catch (NumberFormatException e) {
+                    // Línea corrupta: se descarta y el resto del historial se sigue leyendo.
+                }
             }
-        } catch (IOException | NumberFormatException e) {
-            System.out.println("No se pudo leer el historial desde archivo: " + e.getMessage());
+        } catch (IOException e) {
+            throw new IllegalStateException("No se pudo leer el historial desde archivo", e);
         }
 
         return resultados;
@@ -98,7 +146,7 @@ public class RepositorioArchivo implements IRepositorioResultados {
             writer.write("numero,color,tipoApuesta,monto,acierto");
             writer.newLine();
         } catch (IOException e) {
-            System.out.println("No se pudo limpiar el historial: " + e.getMessage());
+            throw new IllegalStateException("No se pudo limpiar el historial", e);
         }
     }
 }

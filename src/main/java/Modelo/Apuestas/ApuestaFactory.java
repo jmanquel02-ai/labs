@@ -3,6 +3,10 @@ package Modelo.Apuestas;
 public class ApuestaFactory {
 
     public static ApuestaBase crear(String etiqueta, int monto) {
+        if (etiqueta == null || etiqueta.isBlank()) {
+            throw new IllegalArgumentException("Tipo de apuesta requerido");
+        }
+
         return switch (etiqueta) {
             case "ROJO" -> new ApuestaRojo(monto);
             case "NEGRO" -> new ApuestaNegro(monto);

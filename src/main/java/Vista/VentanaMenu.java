@@ -56,12 +56,29 @@ public class VentanaMenu extends JFrame {
         btnCerrarSesion.addActionListener(e -> cerrarSesion());
     }
 
+    private boolean validarSesionActiva() {
+        if (!sessionController.hayUsuario()) {
+            JOptionPane.showMessageDialog(this, "No hay una sesión activa. Debe iniciar sesión nuevamente.");
+            new VentanaLogin(sessionController).setVisible(true);
+            dispose();
+            return false;
+        }
+        return true;
+    }
+
     private void abrirJuego() {
+        if (!validarSesionActiva()) {
+            return;
+        }
         new VentanaJuego(sessionController, ruletaController).setVisible(true);
         dispose();
     }
 
     private void mostrarPerfil() {
+        if (!validarSesionActiva()) {
+            return;
+        }
+
         JOptionPane.showMessageDialog(this,
                 "Nombre: " + sessionController.getUsuarioActual().getNombre() +
                         "\nUsuario: " + sessionController.getUsuarioActual().getUsername() +
@@ -69,11 +86,17 @@ public class VentanaMenu extends JFrame {
     }
 
     private void abrirHistorial() {
+        if (!validarSesionActiva()) {
+            return;
+        }
         new VentanaHistorial(sessionController, ruletaController).setVisible(true);
         dispose();
     }
 
     private void abrirEstadisticas() {
+        if (!validarSesionActiva()) {
+            return;
+        }
         new VentanaEstadisticas(ruletaController).setVisible(true);
     }
 

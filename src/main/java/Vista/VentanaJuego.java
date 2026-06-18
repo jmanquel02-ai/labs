@@ -55,10 +55,46 @@ public class VentanaJuego extends JFrame {
     }
 
     private void jugar() {
-        try {
-            String tipo = (String) cboTipo.getSelectedItem();
-            int monto = Integer.parseInt(txtMonto.getText());
+        if (!sessionController.hayUsuario()) {
+            JOptionPane.showMessageDialog(this, "No hay una sesión activa. Debe iniciar sesión nuevamente.");
+            new VentanaLogin(sessionController).setVisible(true);
+            dispose();
+            return;
+        }
 
+        String tipo = (String) cboTipo.getSelectedItem();
+        String textoMonto = txtMonto.getText().trim();
+
+        if (tipo == null || tipo.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Debe seleccionar un tipo de apuesta");
+            return;
+        }
+
+        if (textoMonto.isBlank()) {
+            JOptionPane.showMessageDialog(this, "Debe ingresar un monto");
+            return;
+        }
+
+        int monto;
+
+        try {
+            monto = Integer.parseInt(textoMonto);
+        } catch (NumberFormatException e) {
+            JOptionPane.showMessageDialog(this, "El monto debe ser un número entero");
+            return;
+        }
+
+        if (monto <= 0) {
+            JOptionPane.showMessageDialog(this, "El monto debe ser mayor que 0");
+            return;
+        }
+
+        if (monto > ruletaController.getSaldo()) {
+            JOptionPane.showMessageDialog(this, "Saldo insuficiente");
+            return;
+        }
+
+        try {
             ApuestaBase apuesta = ApuestaFactory.crear(tipo, monto);
             Resultado resultado = ruletaController.jugar(apuesta);
 
@@ -72,8 +108,8 @@ public class VentanaJuego extends JFrame {
 
             refrescarSaldo();
 
-        } catch (Exception e) {
-            JOptionPane.showMessageDialog(this, "Error: " + e.getMessage());
+        } catch (IllegalStateException e) {
+            JOptionPane.showMessageDialog(this, e.getMessage());
         }
     }
 

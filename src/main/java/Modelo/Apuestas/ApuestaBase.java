@@ -9,6 +9,11 @@ public abstract class ApuestaBase {
         if (monto <= 0) {
             throw new IllegalArgumentException("El monto debe ser mayor que 0");
         }
+
+        if (etiqueta == null || etiqueta.isBlank()) {
+            throw new IllegalArgumentException("Etiqueta de apuesta requerida");
+        }
+
         this.monto = monto;
         this.etiqueta = etiqueta;
     }

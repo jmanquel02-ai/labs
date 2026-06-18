@@ -6,27 +6,33 @@ import static org.junit.jupiter.api.Assertions.*;
 public class SessionControllerTest {
 
     @Test
-    void inicioSesionConUsuarioNoRegistradoEsRechazado() {
+    void inicioSesionConUsuarioNoRegistradoLanzaExcepcionDeDominio() {
         SessionController sessionController = new SessionController();
 
         sessionController.registrarUsuario("jonathan", "1234", "Jonathan");
 
-        boolean resultado = sessionController.iniciarSesion("usuario_no_registrado", "1234");
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> sessionController.iniciarSesion("usuario_no_registrado", "1234")
+        );
 
-        assertFalse(resultado);
+        assertEquals("Credenciales incorrectas", exception.getMessage());
     }
 
     @Test
-    void inicioSesionSinUsuariosRegistradosEsRechazado() {
+    void inicioSesionSinUsuariosRegistradosLanzaExcepcionDeDominio() {
         SessionController sessionController = new SessionController();
 
-        boolean resultado = sessionController.iniciarSesion("jonathan", "1234");
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> sessionController.iniciarSesion("jonathan", "1234")
+        );
 
-        assertFalse(resultado);
+        assertEquals("Credenciales incorrectas", exception.getMessage());
     }
 
     @Test
-    void inicioSesionConUsernameNuloEsRechazado() {
+    void inicioSesionConUsernameNuloEsRechazadoSinExcepcion() {
         SessionController sessionController = new SessionController();
 
         sessionController.registrarUsuario("jonathan", "1234", "Jonathan");
@@ -46,5 +52,31 @@ public class SessionControllerTest {
         );
 
         assertEquals("Datos requeridos", exception.getMessage());
+    }
+
+    @Test
+    void registroDuplicadoLanzaIllegalStateException() {
+        SessionController sessionController = new SessionController();
+
+        sessionController.registrarUsuario("jonathan", "1234", "Jonathan");
+
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> sessionController.registrarUsuario("jonathan", "abcd", "Otro Jonathan")
+        );
+
+        assertEquals("El usuario ya está registrado", exception.getMessage());
+    }
+
+    @Test
+    void getUsuarioActualSinSesionLanzaIllegalStateException() {
+        SessionController sessionController = new SessionController();
+
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                sessionController::getUsuarioActual
+        );
+
+        assertEquals("No hay una sesión activa", exception.getMessage());
     }
 }

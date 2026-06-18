@@ -14,20 +14,35 @@ public class RuletaController {
     private final IRepositorioResultados repositorioResultados;
 
     public RuletaController(Ruleta ruleta, SessionController sessionController) {
+        if (ruleta == null) {
+            throw new IllegalArgumentException("Ruleta requerida");
+        }
+
+        if (sessionController == null) {
+            throw new IllegalArgumentException("Sesión requerida");
+        }
+
         this.ruleta = ruleta;
         this.sessionController = sessionController;
         this.repositorioResultados = ruleta.getRepositorioResultados();
     }
 
     public Resultado jugar(ApuestaBase apuesta) {
-        Resultado resultado = ruleta.jugar(apuesta);
+        if (!sessionController.hayUsuario()) {
+            throw new IllegalStateException("No hay una sesión activa");
+        }
 
+        Resultado resultado = ruleta.jugar(apuesta);
         sessionController.getUsuarioActual().agregarResultado(resultado);
 
         return resultado;
     }
 
     public List<Resultado> obtenerHistorial() {
+        if (!sessionController.hayUsuario()) {
+            throw new IllegalStateException("No hay una sesión activa");
+        }
+
         return repositorioResultados.obtenerTodos();
     }
 
